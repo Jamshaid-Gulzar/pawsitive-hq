@@ -8,8 +8,24 @@ export type Db = LibSQLDatabase<typeof schema>;
 
 // Turso in production; a local SQLite file otherwise. On Vercel without Turso
 // the only writable place is /tmp, which works but resets on cold starts.
+//
+// The Vercel Turso integration names its variables after a chosen prefix
+// (TURSO_DATABASE_URL, TURSO_URL, STORAGE_URL…), so accept any libsql:// URL
+// and the token that shares its prefix.
+function tursoConfig(): { url: string; authToken?: string } | null {
+  const env = process.env;
+  const urlKey =
+    ["TURSO_DATABASE_URL", "TURSO_URL", "STORAGE_URL", "DATABASE_URL"].find((k) => env[k]?.startsWith("libsql://")) ??
+    Object.keys(env).find((k) => k.endsWith("_URL") && env[k]?.startsWith("libsql://"));
+  if (!urlKey) return null;
+  const prefix = urlKey.replace(/_(DATABASE_)?URL$/, "");
+  const authToken = env[`${prefix}_AUTH_TOKEN`] ?? env[`${prefix}_TOKEN`] ?? env[`${prefix}_DATABASE_AUTH_TOKEN`] ?? env.TURSO_AUTH_TOKEN;
+  return { url: env[urlKey]!, authToken };
+}
+
 function databaseUrl(): string {
-  if (process.env.TURSO_DATABASE_URL) return process.env.TURSO_DATABASE_URL;
+  const turso = tursoConfig();
+  if (turso) return turso.url;
   if (process.env.VERCEL) return "file:/tmp/pawsitive.db";
   return "file:local.db";
 }
@@ -28,7 +44,7 @@ const globalForDb = globalThis as unknown as { pawsitiveDb?: DbState };
 
 function state(): DbState {
   if (!globalForDb.pawsitiveDb) {
-    const client = createClient({ url: databaseUrl(), authToken: process.env.TURSO_AUTH_TOKEN });
+    const client = createClient({ url: databaseUrl(), authToken: tursoConfig()?.authToken });
     globalForDb.pawsitiveDb = { client, db: drizzle({ client, schema }), setup: null, resetting: null, seededOn: null };
   }
   return globalForDb.pawsitiveDb;
