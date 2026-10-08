@@ -2,7 +2,7 @@
 
 A full pet-care business system: a **mobile app for pet parents**, a **front-desk dashboard for staff**, a **clinic app for in-house vets**, and an **owner console** for the admin. Built as a portfolio project using free tools only.
 
-**Live demo:** _link coming soon_ · Use **Show quick demo login** on the sign-in screen to try any role in one tap, or sign in with `<first name>@pawsitive.demo` / `demo1234` (e.g. `emily@pawsitive.demo`).
+**Live demo:** https://pawsitive-hq.vercel.app · Use **Show quick demo login** on the sign-in screen to try any role in one tap, or sign in with `<first name>@pawsitive.demo` / `demo1234` (e.g. `emily@pawsitive.demo`).
 
 ## What it does
 
